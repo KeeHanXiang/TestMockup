@@ -1,10 +1,26 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+// 🔹 Mock "database"
+const mockDatabase = {
+  1001: "Tessa Sia",
+  1002: "Meka",
+  1003: "Wee Kang",
+};
+
+const reverseMockDatabase = Object.entries(mockDatabase).reduce(
+  (acc, [fid, name]) => {
+    acc[name] = fid;
+    return acc;
+  },
+  {}
+);
 
 const expenseCategories = [
   {
     title: "(1) LIVING EXPENSES",
     color: "#d4e9cd",
-    editable: "LMF_P1",
+    editable: "ILMF_P1",
     items: [
       { code: "512010", name: "1(a) Living Expense" },
       { code: "512020", name: "1(b) Personal Allowance" },
@@ -14,7 +30,7 @@ const expenseCategories = [
   {
     title: "(2) ROUTINE EXPENSES",
     color: "#cfe2f3",
-    editable: "LMF_P1",
+    editable: "ILMF_P1",
     items: [
       { code: "512310", name: "2(a) Household Help Wages" },
       { code: "512311", name: "2(b) Work Travel" },
@@ -25,7 +41,7 @@ const expenseCategories = [
   {
     title: "(3) HOUSING EXPENSES",
     color: "#f9cb9c",
-    editable: "LMF_P1",
+    editable: "ILMF_P1",
     items: [
       { code: "512610", name: "3(a) Rent/Housing" },
       { code: "512611", name: "3(b) Utilities" },
@@ -35,7 +51,7 @@ const expenseCategories = [
   {
     title: "(4) CURRENT EXPENSES",
     color: "#f4cccc",
-    editable: "LMF_P1",
+    editable: "ILMF_P1",
     items: [
       { code: "512210", name: "4(a) Medical Expenses and Medical Insurance" },
       { code: "512314", name: "4(b) Visa & Work Permit, Passport" },
@@ -65,7 +81,7 @@ const expenseCategories = [
   {
     title: "(5) SAVINGS ITEMS",
     color: "#e3fcef",
-    editable: "LMF_P1",
+    editable: "ILMF_P1",
     items: [
       { code: "512320", name: "5(a) IT Equipment" },
       { code: "512330", name: "5(b) Other Ministry Equipment" },
@@ -77,7 +93,7 @@ const expenseCategories = [
   {
     title: "(6) PRIORITY 2",
     color: "#fce5cd",
-    editable: "LMF_P2",
+    editable: "ILMF_P2",
     items: [
       { code: "512335", name: "5(b) Other Ministry Equipment" },
       { code: "512345", name: "5(d) Vehicle Purchase" },
@@ -91,6 +107,10 @@ const greyedOutCellStyle = {
 
 const CBAnnualEstimateForm = () => {
   const [formData, setFormData] = useState({});
+  const [familyID, setFamilyID] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [date, setDate] = useState("");
+  const navigate = useNavigate();
 
   const handleInputChange = (code, field, value) => {
     setFormData((prev) => ({
@@ -100,6 +120,18 @@ const CBAnnualEstimateForm = () => {
         [field]: value,
       },
     }));
+  };
+
+  const handleFamilyIDChange = (e) => {
+    const fid = e.target.value;
+    setFamilyID(fid);
+    setAccountName(mockDatabase[fid] || "");
+  };
+
+  const handleAccountNameChange = (e) => {
+    const name = e.target.value;
+    setAccountName(name);
+    setFamilyID(reverseMockDatabase[name] || "");
   };
 
   const getCategoryTotal = (category, field) => {
@@ -112,9 +144,20 @@ const CBAnnualEstimateForm = () => {
   };
 
   const getRowSubtotal = (code) => {
-    const p1 = parseFloat(formData[code]?.LMF_P1) || 0;
-    const p2 = parseFloat(formData[code]?.LMF_P2) || 0;
+    const p1 = parseFloat(formData[code]?.ILMF_P1) || 0;
+    const p2 = parseFloat(formData[code]?.ILMF_P2) || 0;
     return (p1 + p2).toFixed(2);
+  };
+
+  const handleSubmit = () => {
+    navigate("/submitted", {
+      state: {
+        familyID,
+        accountName,
+        formData,
+        date,
+      },
+    });
   };
 
   return (
@@ -128,11 +171,11 @@ const CBAnnualEstimateForm = () => {
     >
       <h2>CB Annual Estimate Summary Sheet (2022)</h2>
 
+      {/* Header Section */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "flex-start",
           marginBottom: "1rem",
         }}
       >
@@ -144,31 +187,54 @@ const CBAnnualEstimateForm = () => {
           }}
         >
           <label style={{ marginBottom: "0.5rem" }}>
-            Family ID: <input type="text" style={{ width: "100%" }} />
+            Family ID:{" "}
+            <input
+              type="text"
+              value={familyID}
+              onChange={handleFamilyIDChange}
+              style={{ width: "100%" }}
+            />
           </label>
           <label>
-            Account Name: <input type="text" style={{ width: "100%" }} />
+            Account Name:{" "}
+            <input
+              type="text"
+              value={accountName}
+              onChange={handleAccountNameChange}
+              style={{ width: "100%" }}
+            />
           </label>
         </div>
         <div style={{ textAlign: "right" }}>
           <label>
-            Date: <input type="date" />
+            Date:
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
           </label>
         </div>
       </div>
 
+      {/* Table */}
       <table
-        border="1"
         cellPadding="5"
         style={{ width: "100%", borderCollapse: "collapse" }}
       >
         <thead>
           <tr>
-            <th>Account Code</th>
-            <th>Category</th>
-            <th>Sub-totals</th>
-            <th>LMF_P1</th>
-            <th>LMF_P2</th>
+            {[
+              "Account Code",
+              "Category",
+              "Sub-totals",
+              "ILMF_P1",
+              "ILMF_P2",
+            ].map((header) => (
+              <th key={header} style={{ border: "1px solid black" }}>
+                {header}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -181,6 +247,7 @@ const CBAnnualEstimateForm = () => {
                     backgroundColor: category.color,
                     fontWeight: "bold",
                     padding: "0.5rem",
+                    border: "1px solid black",
                   }}
                 >
                   {category.title}
@@ -188,48 +255,54 @@ const CBAnnualEstimateForm = () => {
               </tr>
               {category.items.map((item, index) => (
                 <tr key={item.code + item.name + index}>
-                  <td>{item.code}</td>
-                  <td>{item.name}</td>
-                  <td style={{ textAlign: "right" }}>
+                  <td style={{ border: "1px solid black" }}>{item.code}</td>
+                  <td style={{ border: "1px solid black" }}>{item.name}</td>
+                  <td style={{ textAlign: "right", border: "1px solid black" }}>
                     {getRowSubtotal(item.code)}
                   </td>
                   <td
-                    style={
-                      category.editable !== "LMF_P1"
+                    style={{
+                      border: "1px solid black",
+                      ...(category.editable !== "ILMF_P1"
                         ? greyedOutCellStyle
-                        : undefined
-                    }
+                        : {}),
+                    }}
                   >
-                    {category.editable === "LMF_P1" && (
+                    {category.editable === "ILMF_P1" && (
                       <input
                         type="number"
-                        value={formData[item.code]?.LMF_P1 || ""}
+                        value={formData[item.code]?.ILMF_P1 || ""}
                         onChange={(e) =>
-                          handleInputChange(item.code, "LMF_P1", e.target.value)
+                          handleInputChange(
+                            item.code,
+                            "ILMF_P1",
+                            e.target.value
+                          )
                         }
                         style={{ width: "100%", boxSizing: "border-box" }}
                       />
                     )}
                   </td>
-
                   <td
-                    style={
-                      category.editable !== "LMF_P2"
+                    style={{
+                      border: "1px solid black",
+                      ...(category.editable !== "ILMF_P2"
                         ? greyedOutCellStyle
-                        : undefined
-                    }
+                        : {}),
+                    }}
                   >
-                    {category.editable === "LMF_P2" && (
+                    {category.editable === "ILMF_P2" && (
                       <input
                         type="number"
-                        value={formData[item.code]?.LMF_P2 || ""}
+                        value={formData[item.code]?.ILMF_P2 || ""}
                         onChange={(e) =>
-                          handleInputChange(item.code, "LMF_P2", e.target.value)
+                          handleInputChange(
+                            item.code,
+                            "ILMF_P2",
+                            e.target.value
+                          )
                         }
-                        style={{
-                          width: "100%",
-                          boxSizing: "border-box",
-                        }}
+                        style={{ width: "100%", boxSizing: "border-box" }}
                       />
                     )}
                   </td>
@@ -242,24 +315,64 @@ const CBAnnualEstimateForm = () => {
                     fontStyle: "italic",
                     padding: "0.5rem",
                     textAlign: "right",
+                    border: "1px solid black",
                   }}
                 >
                   Total for {category.title}
                 </td>
-                <td></td>
-                <td style={{ fontWeight: "bold", textAlign: "right" }}>
-                  {getCategoryTotal(category, "LMF_P1")}
+                <td style={{ border: "1px solid black" }}></td>
+                <td
+                  style={{
+                    fontWeight: "bold",
+                    textAlign: "right",
+                    border: "1px solid black",
+                  }}
+                >
+                  {getCategoryTotal(category, "ILMF_P1")}
                 </td>
-                <td style={{ fontWeight: "bold", textAlign: "right" }}>
-                  {getCategoryTotal(category, "LMF_P2")}
+                <td
+                  style={{
+                    fontWeight: "bold",
+                    textAlign: "right",
+                    border: "1px solid black",
+                  }}
+                >
+                  {getCategoryTotal(category, "ILMF_P2")}
                 </td>
               </tr>
-              <tr><td colSpan="5" style={{ height: "10px" }}></td></tr>
-
+              <tr>
+                <td
+                  colSpan="5"
+                  style={{
+                    height: "10px",
+                    border: "none",
+                    backgroundColor: "transparent",
+                    padding: 10,
+                  }}
+                ></td>
+              </tr>
             </React.Fragment>
           ))}
         </tbody>
       </table>
+
+      {/* Submit Button */}
+      <div style={{ marginTop: "2rem", textAlign: "center" }}>
+        <button
+          onClick={handleSubmit}
+          style={{
+            padding: "0.75rem 2rem",
+            fontSize: "1rem",
+            backgroundColor: "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          Submit
+        </button>
+      </div>
     </div>
   );
 };

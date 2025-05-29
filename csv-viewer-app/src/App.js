@@ -1,11 +1,15 @@
-import React from 'react';
-import CBAnnualEstimateForm from './CBAnnualEstimateForm';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import CBAnnualEstimateForm from "./CBAnnualEstimateForm";
+import SubmittedDetailsPage from "./SubmittedDetailsPage";
 
 function App() {
   return (
-    <div className="App">
-      <CBAnnualEstimateForm />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<CBAnnualEstimateForm />} />
+        <Route path="/submitted" element={<SubmittedDetailsPage />} />
+      </Routes>
+    </Router>
   );
 }
 
