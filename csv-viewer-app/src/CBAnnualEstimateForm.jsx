@@ -3,9 +3,21 @@ import { useNavigate } from "react-router-dom";
 
 // 🔹 Mock "database"
 const mockDatabase = {
-  1001: "Tessa Sia",
-  1002: "Meka",
-  1003: "Wee Kang",
+  1001: {
+    accountName: "Tessa Sia",
+    homeCountry: "AC88 - China and Beyond",
+    fieldCountry: "AC02 - Canada National Office",
+  },
+  1002: {
+    accountName: "Meka",
+    homeCountry: "AC10 - British National Office",
+    fieldCountry: "AC48 - Singapore National Office",
+  },
+  1003: {
+    accountName: "Wee Kang",
+    homeCountry: "AC48 - Singapore National Office",
+    fieldCountry: "AC88 - China and Beyond",
+  },
 };
 
 const reverseMockDatabase = Object.entries(mockDatabase).reduce(
@@ -109,6 +121,8 @@ const CBAnnualEstimateForm = () => {
   const [formData, setFormData] = useState({});
   const [familyID, setFamilyID] = useState("");
   const [accountName, setAccountName] = useState("");
+  const [homeCountry, setHomeCountry] = useState("");
+  const [fieldCountry, setFieldCountry] = useState("");
   const [date, setDate] = useState("");
   const navigate = useNavigate();
 
@@ -125,7 +139,16 @@ const CBAnnualEstimateForm = () => {
   const handleFamilyIDChange = (e) => {
     const fid = e.target.value;
     setFamilyID(fid);
-    setAccountName(mockDatabase[fid] || "");
+    const info = mockDatabase[fid];
+    if (info) {
+      setAccountName(info.accountName);
+      setHomeCountry(info.homeCountry);
+      setFieldCountry(info.fieldCountry);
+    } else {
+      setAccountName("");
+      setHomeCountry("");
+      setFieldCountry("");
+    }
   };
 
   const handleAccountNameChange = (e) => {
@@ -183,35 +206,72 @@ const CBAnnualEstimateForm = () => {
           style={{
             display: "flex",
             flexDirection: "column",
+            gap: "0.75rem",
             minWidth: "300px",
           }}
         >
-          <label style={{ marginBottom: "0.5rem" }}>
-            Family ID:{" "}
+          <label
+            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+          >
+            Family ID:
             <input
               type="text"
               value={familyID}
               onChange={handleFamilyIDChange}
-              style={{ width: "100%" }}
+              style={{ flex: 1 }}
             />
           </label>
-          <label>
-            Account Name:{" "}
+          <label
+            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+          >
+            Account Name:
             <input
               type="text"
               value={accountName}
               onChange={handleAccountNameChange}
-              style={{ width: "100%" }}
+              style={{ flex: 1 }}
             />
           </label>
         </div>
-        <div style={{ textAlign: "right" }}>
-          <label>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: "0.75rem",
+            minWidth: "500px",
+          }}
+        >
+          <label
+            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+          >
             Date:
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
+            />
+          </label>
+          <label
+            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+          >
+            Home Country:
+            <input
+              type="text"
+              value={homeCountry}
+              disabled
+              style={{ minWidth: "250px",flex: 1 }}
+            />
+          </label>
+          <label
+            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+          >
+            Field Country:
+            <input
+              type="text"
+              value={fieldCountry}
+              disabled
+              style={{ minWidth: "250px",flex: 1 }}
             />
           </label>
         </div>
